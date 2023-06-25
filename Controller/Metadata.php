@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Gustavo Ulyssea - gustavo.ulyssea@gmail.com
  * @copyright Copyright (c) 2023 GumNet (https://gum.net.br)
@@ -29,19 +30,31 @@
 
 namespace GumNet\SSO\Controller;
 
+use GumNet\SSO\Model\Saml2\Error;
 use GumNet\SSO\Model\Saml2\Settings;
 use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 
 class Metadata implements HttpGetActionInterface
 {
+    /**
+     * @param Settings $settings
+     * @param RawFactory $resultFactory
+     */
     public function __construct(
         private readonly Settings $settings,
         private readonly RawFactory $resultFactory
     ) {
     }
 
-    public function execute()
+    /**
+     * Return XML metadata
+     *
+     * @return Raw
+     * @throws Error
+     */
+    public function execute(): Raw
     {
         /** @var \Magento\Framework\Controller\Result\Raw $result */
         $result = $this->resultFactory->create();

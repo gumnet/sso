@@ -32,6 +32,8 @@ namespace GumNet\SSO\Controller\Sso;
 use GumNet\SSO\Helper\Data;
 use GumNet\SSO\Model\Saml2\Auth;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\App\Action\HttpGetActionInterface;
@@ -76,5 +78,23 @@ class SignOut implements HttpGetActionInterface, HttpPostActionInterface, CsrfAw
     public function prepareAuth(): void
     {
 //        $this->auth->loadSettingsFromArray($this->helper->getSettingsArray());
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @return InvalidRequestException|null
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @return bool|null
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }

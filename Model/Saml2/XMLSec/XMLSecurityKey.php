@@ -1,4 +1,5 @@
 <?php
+
 /**
  * xmlseclibs.php
  *
@@ -41,6 +42,7 @@
  */
 
 namespace GumNet\SSO\Model\Saml2\XMLSec;
+
 class XMLSecurityKey
 {
     public const TRIPLEDES_CBC = 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc';
