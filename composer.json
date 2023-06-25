@@ -1,0 +1,32 @@
+{
+  "name": "gumnet/sso",
+  "description": "Magento 2 Single Sign On SSO",
+  "version": "0.0.1",
+  "homepage": "https://gum.net.br",
+  "require": {
+    "php": ">=8.1.0",
+    "magento/framework": ">=102.0",
+    "ext-json": "*",
+    "ext-zlib": "*"
+  },
+  "type": "magento2-module",
+  "license": [
+      "BSD-2-Clause"
+  ],
+  "authors": [
+    {
+      "name": "Gustavo Ulyssea @ GUM Net",
+      "email": "suporte@gum.net.br",
+      "homepage": "https://gum.net.br",
+      "role": "Leader"
+    }
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "GumNet\\SSO\\": ""
+    }
+  }
+}
