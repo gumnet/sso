@@ -1,7 +1,7 @@
 {
   "name": "gumnet/sso",
   "description": "Magento 2 Single Sign On SSO",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "homepage": "https://gum.net.br",
   "require": {
     "php": ">=8.1.0",
