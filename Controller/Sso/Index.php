@@ -31,12 +31,15 @@ namespace GumNet\SSO\Controller\Sso;
 
 use GumNet\SSO\Helper\Data;
 use GumNet\SSO\Model\Saml2\Auth;
+use GumNet\SSO\Model\Saml2\Error;
+use GumNet\SSO\Model\Saml2\ValidationError;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\State;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
@@ -49,6 +52,8 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
      * @param Auth $auth
      * @param Data $helper
      * @param RedirectFactory $redirectFactory
+     * @param CookieManagerInterface $cookieManager
+     * @param CookieMetadataFactory $cookieMetadataFactory
      */
     public function __construct(
         private readonly Context $context,
@@ -56,8 +61,14 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
         private readonly Data $helper,
         private readonly RedirectFactory $redirectFactory,
         private readonly CookieManagerInterface $cookieManager,
-        private readonly CookieMetadataFactory $cookieMetadataFactory
+        private readonly CookieMetadataFactory $cookieMetadataFactory,
+        private readonly State $_state
     ) {
+    }
+
+    public function launch()
+    {
+        $this->_state->setAreaCode('adminhtml');
     }
 
     /**
@@ -73,12 +84,18 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
     }
 
 
-
+    /**
+     * @param string $samlResponse
+     * @return Redirect
+     * @throws Error
+     * @throws ValidationError
+     */
     public function processSignOn(string $samlResponse): Redirect
     {
         $this->auth->processResponse($samlResponse, $this->auth->getSettings(), $this->getCookie());
-        echo $this->auth->getNameId();
-        die();
+        $this->helper->adminLogin($this->auth->getNameId());
+        $redirect = $this->redirectFactory->create();
+        return $redirect->setUrl($this->helper->getAdminUrl());
     }
 
     public function redirectToSso(): Redirect
