@@ -33,6 +33,7 @@ use GumNet\SSO\Helper\Data;
 use GumNet\SSO\Model\Saml2\Auth;
 use GumNet\SSO\Model\Saml2\Error;
 use GumNet\SSO\Model\Saml2\ValidationError;
+use GumNet\SSO\Model\User;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
@@ -42,7 +43,10 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
+use Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException;
+use Magento\Framework\Stdlib\Cookie\FailureToSendException;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 
 class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwareActionInterface
@@ -62,7 +66,8 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
         private readonly RedirectFactory $redirectFactory,
         private readonly CookieManagerInterface $cookieManager,
         private readonly CookieMetadataFactory $cookieMetadataFactory,
-        private readonly State $_state
+        private readonly State $_state,
+        private readonly User $user
     ) {
     }
 
@@ -93,7 +98,7 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
     public function processSignOn(string $samlResponse): Redirect
     {
         $this->auth->processResponse($samlResponse, $this->auth->getSettings(), $this->getCookie());
-        $this->helper->adminLogin($this->auth->getNameId());
+        $this->user->login($this->auth->getNameId());
         $redirect = $this->redirectFactory->create();
         return $redirect->setUrl($this->helper->getAdminUrl());
     }
@@ -103,11 +108,17 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
         /** @var Redirect $result */
         $result = $this->redirectFactory->create();
         $url = $this->auth->login();
-        echo $this->auth->getLastRequestID();
         $this->createCookie($this->auth->getLastRequestID());
         return $result->setUrl($url);
     }
 
+    /**
+     * @param string $value
+     * @return void
+     * @throws InputException
+     * @throws CookieSizeLimitReachedException
+     * @throws FailureToSendException
+     */
     public function createCookie(string $value): void
     {
         $cookieMetadata = $this->cookieMetadataFactory->createPublicCookieMetadata();
@@ -117,7 +128,12 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
         $this->cookieManager->setPublicCookie('sso_id', $value, $cookieMetadata);
     }
 
-    public function getCookie()
+    /**
+     * Get SSO Id cookie
+     *
+     * @return string|null
+     */
+    public function getCookie(): ?string
     {
         return $this->cookieManager->getCookie('/sso_id');
     }
@@ -132,11 +148,17 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface, CsrfAwar
         $this->auth->loadSettingsFromArray($this->helper->getSettingsArray());
     }
 
+    /**
+     * @inheirtdoc
+     */
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return new InvalidRequestException('Error');
     }
 
+    /**
+     * @inheirtdoc
+     */
     public function validateForCsrf(RequestInterface $request): ?bool
     {
         return true;
